@@ -118,11 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            crossAxisAlignment: CrossAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 10),
               
-              // AI Circle Progress Display
               Center(
                 child: Container(
                   width: 170,
@@ -164,7 +163,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 25),
 
-              // Scan Button
               ElevatedButton.icon(
                 onPressed: _isScanning ? null : _startAIScan,
                 icon: const Icon(Icons.auto_awesome),
@@ -180,7 +178,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 20),
 
-              // Status Cards List
               Expanded(
                 child: ListView(
                   children: [
@@ -206,7 +203,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Clean Button
               ElevatedButton.icon(
                 onPressed: (_statusText == "THREATS DETECTED" && !_isScanning)
                     ? _cleanSystem
@@ -224,7 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 15),
 
-              // Developer Footer
               const Center(
                 child: Text(
                   "Developer: Renante Fullo",
