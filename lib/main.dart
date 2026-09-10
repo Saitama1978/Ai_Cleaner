@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MobileCleanerApp());
+  runApp(const AICleanerApp());
 }
 
-class MobileCleanerApp extends StatelessWidget {
-  const MobileCleanerApp({super.key});
+class AICleanerApp extends StatelessWidget {
+  const AICleanerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mobile Cleaner & Privacy Shield',
+      title: 'AI Cleaner',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF0D0E15),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF00E676),
-          secondary: Color(0xFF29B6F6),
-          surface: Color(0xFF1E1E1E),
+          secondary: Color(0xFF00E5FF),
+          surface: Color(0xFF161925),
           error: Color(0xFFFF5252),
         ),
         useMaterial3: true,
@@ -38,25 +38,23 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isScanning = false;
-  bool _isCleaned = false;
-  String _statusText = "READY";
-  Color _statusColor = const Color(0xFF00E676);
+  String _statusText = "SYSTEM READY";
+  Color _statusColor = const Color(0xFF00E5FF);
 
   String _junkStatus = "Temporary files, app logs & cache";
   String _privacyStatus = "Anonymous browsing & adult site traces";
   String _malwareStatus = "Dangerous ads & adware scripts";
 
-  void _startScanning() async {
+  void _startAIScan() async {
     setState(() {
       _isScanning = true;
-      _isCleaned = false;
-      _statusText = "SCANNING...";
+      _statusText = "AI ANALYZING...";
       _statusColor = Colors.amber;
     });
 
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
-      _junkStatus = "Found: 420 MB temporary junk files";
+      _junkStatus = "Found: 520 MB junk & residual files";
     });
 
     await Future.delayed(const Duration(seconds: 1));
@@ -72,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {
       _isScanning = false;
-      _statusText = "THREATS FOUND";
+      _statusText = "THREATS DETECTED";
       _statusColor = const Color(0xFFFF5252);
     });
   }
@@ -80,19 +78,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void _cleanSystem() async {
     setState(() {
       _isScanning = true;
-      _statusText = "CLEANING...";
-      _statusColor = const Color(0xFF29B6F6);
+      _statusText = "AI CLEANING...";
+      _statusColor = const Color(0xFF00E5FF);
     });
 
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
       _isScanning = false;
-      _isCleaned = true;
       _junkStatus = "Cleaned (0 B remaining)";
-      _privacyStatus = "Cleared history & cookies";
+      _privacyStatus = "Cleared history & tracking cookies";
       _malwareStatus = "Removed adware & malware cache";
-      _statusText = "PROTECTED";
+      _statusText = "OPTIMIZED";
       _statusColor = const Color(0xFF00E676);
     });
   }
@@ -101,12 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "🛡️ Mobile Cleaner",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.psychology, color: Color(0xFF00E5FF)),
+            SizedBox(width: 8),
+            Text(
+              "AI_Cleaner",
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            ),
+          ],
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: const Color(0xFF161925),
         elevation: 0,
       ),
       body: SafeArea(
@@ -115,31 +120,44 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAlignment.stretch,
             children: [
-              // Circular Progress Display
+              const SizedBox(height: 10),
+              
+              // AI Circle Progress Display
               Center(
                 child: Container(
-                  width: 160,
-                  height: 160,
+                  width: 170,
+                  height: 170,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: _statusColor, width: 6),
+                    border: Border.all(color: _statusColor, width: 4),
                     boxShadow: [
                       BoxShadow(
-                        color: _statusColor.withAlpha(50),
-                        blurRadius: 20,
-                        spreadRadius: 2,
+                        color: _statusColor.withOpacity(0.25),
+                        blurRadius: 25,
+                        spreadRadius: 3,
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      _statusText,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _isScanning ? Icons.auto_awesome : Icons.shield_outlined,
+                        size: 40,
                         color: _statusColor,
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _statusText,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: _statusColor,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -148,11 +166,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Scan Button
               ElevatedButton.icon(
-                onPressed: _isScanning ? null : _startScanning,
-                icon: const Icon(Icons.radar),
-                label: const Text("START FULL SCAN"),
+                onPressed: _isScanning ? null : _startAIScan,
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text("START AI SCAN"),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF29B6F6),
+                  backgroundColor: const Color(0xFF00E5FF),
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   textStyle: const TextStyle(
@@ -162,25 +180,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 20),
 
-              // Status Cards
+              // Status Cards List
               Expanded(
                 child: ListView(
                   children: [
                     _buildStatusCard(
-                      icon: Icons.delete_outline,
-                      title: "Junk & Cache",
+                      icon: Icons.cleaning_services,
+                      title: "Junk & Storage Cache",
                       subtitle: _junkStatus,
                       isWarning: _junkStatus.contains("Found"),
                     ),
                     _buildStatusCard(
-                      icon: Icons.security,
+                      icon: Icons.no_adult_content,
                       title: "Privacy & Adult Site Traces",
                       subtitle: _privacyStatus,
                       isWarning: _privacyStatus.contains("Found"),
                     ),
                     _buildStatusCard(
-                      icon: Icons.bug_report_outlined,
-                      title: "Malware & Adware",
+                      icon: Icons.security_update_warning,
+                      title: "Malware & Adware Shield",
                       subtitle: _malwareStatus,
                       isWarning: _malwareStatus.contains("Found"),
                     ),
@@ -190,11 +208,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Clean Button
               ElevatedButton.icon(
-                onPressed: (_statusText == "THREATS FOUND" && !_isScanning)
+                onPressed: (_statusText == "THREATS DETECTED" && !_isScanning)
                     ? _cleanSystem
                     : null,
-                icon: const Icon(Icons.cleaning_services),
-                label: const Text("CLEAN NOW"),
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text("OPTIMIZE NOW"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
                   foregroundColor: Colors.black,
@@ -209,10 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
               // Developer Footer
               const Center(
                 child: Text(
-                  "Developed by: Renante Fullo",
+                  "Developer: Renante Fullo",
                   style: TextStyle(
                     color: Colors.grey,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -231,23 +249,31 @@ class _HomeScreenState extends State<HomeScreen> {
     required bool isWarning,
   }) {
     return Card(
-      color: const Color(0xFF1E1E1E),
+      color: const Color(0xFF161925),
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isWarning
+              ? const Color(0xFFFF5252).withOpacity(0.5)
+              : Colors.transparent,
+        ),
+      ),
       child: ListTile(
         leading: Icon(
           icon,
           color: isWarning ? const Color(0xFFFF5252) : const Color(0xFF00E676),
-          size: 30,
+          size: 28,
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         subtitle: Text(
           subtitle,
           style: TextStyle(
             color: isWarning ? const Color(0xFFFF5252) : Colors.grey,
-            fontSize: 13,
+            fontSize: 12,
           ),
         ),
       ),
