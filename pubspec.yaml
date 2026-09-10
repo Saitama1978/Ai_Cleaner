@@ -19,10 +19,10 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.13.1
 
-# Gagamitin nito ang apk_icon.png na nasa root folder mo
+# Naka-set sa false ang ios para hindi mag-search ng iOS folder
 flutter_launcher_icons:
   android: true
-  ios: true
+  ios: false
   image_path: "apk_icon.png"
 
 flutter:
