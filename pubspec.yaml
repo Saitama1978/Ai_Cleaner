@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   path_provider: ^2.1.2
   permission_handler: ^11.3.1
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:
@@ -19,7 +20,6 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.13.1
 
-# Naka-set sa false ang ios para hindi mag-search ng iOS folder
 flutter_launcher_icons:
   android: true
   ios: false
