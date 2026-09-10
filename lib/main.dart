@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 
 void main() {
   runApp(const AICleanerApp());
@@ -116,23 +118,42 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Opens System Network Settings to setup Private DNS Blocker
+  // Guaranteed Android Settings Opener (with 3 Fallbacks)
   Future<void> _openDNSOption() async {
-    final Uri intentUri = Uri.parse("intent:#Intent;action=android.settings.NETWORK_OPERATOR_SETTINGS;end");
-    if (await canLaunchUrl(intentUri)) {
-      await launchUrl(intentUri);
-    } else {
-      await launchUrl(Uri.parse("package:com.android.settings"));
+    if (Platform.isAndroid) {
+      try {
+        const intent = AndroidIntent(
+          action: 'android.settings.NETWORK_OPERATOR_SETTINGS',
+          flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+        );
+        await intent.launch();
+      } catch (_) {
+        try {
+          const fallbackIntent = AndroidIntent(
+            action: 'android.settings.WIRELESS_SETTINGS',
+            flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+          );
+          await fallbackIntent.launch();
+        } catch (_) {
+          const mainSettingsIntent = AndroidIntent(
+            action: 'android.settings.SETTINGS',
+            flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+          );
+          await mainSettingsIntent.launch();
+        }
+      }
     }
   }
 
-  // Launches Incognito Browser directly
+  // Opens Chrome Incognito Browser Directly
   Future<void> _openIncognito() async {
     final Uri intentUri = Uri.parse(
       'intent://google.com#Intent;scheme=https;package=com.android.chrome;S.com.android.chrome.extra.INCOGNITO=true;end',
     );
     if (await canLaunchUrl(intentUri)) {
       await launchUrl(intentUri);
+    } else {
+      await launchUrl(Uri.parse('https://google.com'), mode: LaunchMode.externalApplication);
     }
   }
 
