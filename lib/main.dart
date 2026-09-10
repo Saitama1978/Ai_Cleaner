@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const AICleanerApp());
@@ -41,25 +42,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isScanning = false;
-  bool _isProtectionActive = false;
   String _statusText = "SYSTEM READY";
   Color _statusColor = const Color(0xFF00E5FF);
 
   double _junkSizeMB = 0.0;
-  String _junkStatus = "Tap scan to analyze storage cache";
-  String _privacyStatus = "Adult & tracker protection disabled";
-  String _malwareStatus = "Malware & adware shield ready";
+  String _junkStatus = "Tap scan to analyze temporary cache";
 
-  // Request Storage Permission
-  Future<bool> _requestStoragePermission() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
-    }
-    return status.isGranted;
-  }
-
-  // Real Storage Cache Scanner Engine
   Future<void> _startAIScan() async {
     setState(() {
       _isScanning = true;
@@ -67,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _statusColor = Colors.amber;
     });
 
-    await _requestStoragePermission();
+    await Permission.storage.request();
 
     double totalCacheSize = 0.0;
     try {
@@ -75,30 +63,18 @@ class _HomeScreenState extends State<HomeScreen> {
       if (tempDir.existsSync()) {
         totalCacheSize += _getDirectorySize(tempDir);
       }
-      final cacheDir = await getApplicationCacheDirectory();
-      if (cacheDir.existsSync()) {
-        totalCacheSize += _getDirectorySize(cacheDir);
-      }
-    } catch (e) {
-      // Fallback display if access is restricted
-      totalCacheSize = 142.5;
-    }
+    } catch (_) {}
 
     _junkSizeMB = totalCacheSize / (1024 * 1024);
-
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
       _isScanning = false;
       _junkStatus = _junkSizeMB > 0
-          ? "Found: ${_junkSizeMB.toStringAsFixed(2)} MB temporary cache"
-          : "System cache is clean";
-      _privacyStatus = _isProtectionActive
-          ? "Adult site DNS filter: ACTIVE"
-          : "Found: Unfiltered adult site access";
-      _malwareStatus = "Found: Potential adware script traces";
-      _statusText = "THREATS DETECTED";
-      _statusColor = const Color(0xFFFF5252);
+          ? "Found: ${_junkSizeMB.toStringAsFixed(2)} MB temporary files"
+          : "System cache clean";
+      _statusText = "SCAN COMPLETE";
+      _statusColor = const Color(0xFF00E676);
     });
   }
 
@@ -116,12 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return size;
   }
 
-  // Real File Cleaning Function
   Future<void> _cleanSystem() async {
     setState(() {
       _isScanning = true;
-      _statusText = "AI CLEANING...";
-      _statusColor = const Color(0xFF00E5FF);
+      _statusText = "CLEANING...";
     });
 
     try {
@@ -137,12 +111,29 @@ class _HomeScreenState extends State<HomeScreen> {
       _isScanning = false;
       _junkSizeMB = 0.0;
       _junkStatus = "Cleaned (0 B remaining)";
-      _privacyStatus = "Protected via Family DNS Filter";
-      _malwareStatus = "Adware cache purged";
       _statusText = "OPTIMIZED";
       _statusColor = const Color(0xFF00E676);
-      _isProtectionActive = true;
     });
+  }
+
+  // Opens System Network Settings to setup Private DNS Blocker
+  Future<void> _openDNSOption() async {
+    final Uri intentUri = Uri.parse("intent:#Intent;action=android.settings.NETWORK_OPERATOR_SETTINGS;end");
+    if (await canLaunchUrl(intentUri)) {
+      await launchUrl(intentUri);
+    } else {
+      await launchUrl(Uri.parse("package:com.android.settings"));
+    }
+  }
+
+  // Launches Incognito Browser directly
+  Future<void> _openIncognito() async {
+    final Uri intentUri = Uri.parse(
+      'intent://google.com#Intent;scheme=https;package=com.android.chrome;S.com.android.chrome.extra.INCOGNITO=true;end',
+    );
+    if (await canLaunchUrl(intentUri)) {
+      await launchUrl(intentUri);
+    }
   }
 
   @override
@@ -163,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF161925),
-        elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
@@ -173,45 +163,34 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Center(
                 child: Container(
-                  width: 160,
-                  height: 160,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: _statusColor, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _statusColor.withOpacity(0.25),
-                        blurRadius: 25,
-                        spreadRadius: 3,
-                      ),
-                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         _isScanning ? Icons.auto_awesome : Icons.shield_outlined,
-                        size: 38,
+                        size: 36,
                         color: _statusColor,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         _statusText,
-                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: _statusColor,
-                          letterSpacing: 1.1,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
+              const SizedBox(height: 15),
               ElevatedButton.icon(
                 onPressed: _isScanning ? null : _startAIScan,
                 icon: const Icon(Icons.auto_awesome),
@@ -219,64 +198,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E5FF),
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
-
               const SizedBox(height: 15),
-
               Expanded(
                 child: ListView(
                   children: [
-                    _buildStatusCard(
+                    _buildFeatureCard(
                       icon: Icons.cleaning_services,
-                      title: "Junk & Cache Storage",
+                      title: "Storage Cache",
                       subtitle: _junkStatus,
-                      isWarning: _junkStatus.contains("Found"),
+                      actionText: "CLEAN NOW",
+                      onTap: _cleanSystem,
                     ),
-                    _buildStatusCard(
-                      icon: Icons.no_adult_content,
-                      title: "Adult Site & Privacy Blocker",
-                      subtitle: _privacyStatus,
-                      isWarning: _privacyStatus.contains("Found"),
+                    _buildFeatureCard(
+                      icon: Icons.block,
+                      title: "Adult Site Blocker Setup",
+                      subtitle: "Set Private DNS: family.cloudflare-dns.com",
+                      actionText: "OPEN SETTINGS",
+                      onTap: _openDNSOption,
                     ),
-                    _buildStatusCard(
-                      icon: Icons.security_update_warning,
-                      title: "Malware & Adware Shield",
-                      subtitle: _malwareStatus,
-                      isWarning: _malwareStatus.contains("Found"),
+                    _buildFeatureCard(
+                      icon: Icons.security,
+                      title: "Safe Private Browser",
+                      subtitle: "Launch Chrome in Incognito mode",
+                      actionText: "OPEN INCOGNITO",
+                      onTap: _openIncognito,
                     ),
                   ],
                 ),
               ),
-
-              ElevatedButton.icon(
-                onPressed: (_statusText == "THREATS DETECTED" && !_isScanning)
-                    ? _cleanSystem
-                    : null,
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text("OPTIMIZE & BLOCK ADULT SITES"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E676),
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
               const Center(
                 child: Text(
                   "Developer: Renante Fullo",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               ),
             ],
@@ -286,39 +242,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatusCard({
+  Widget _buildFeatureCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    required bool isWarning,
+    required String actionText,
+    required VoidCallback onTap,
   }) {
     return Card(
       color: const Color(0xFF161925),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isWarning
-              ? const Color(0xFFFF5252).withOpacity(0.5)
-              : Colors.transparent,
-        ),
-      ),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color: isWarning ? const Color(0xFFFF5252) : const Color(0xFF00E676),
-          size: 28,
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(
-            color: isWarning ? const Color(0xFFFF5252) : Colors.grey,
-            fontSize: 12,
-          ),
+        leading: Icon(icon, color: const Color(0xFF00E5FF), size: 28),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+        trailing: TextButton(
+          onPressed: onTap,
+          child: Text(actionText, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
         ),
       ),
     );
